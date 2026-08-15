@@ -32,17 +32,53 @@ export function extractListMaLop(classes: ClassModel[]) {
   return unique.map((it) => it.MaLop);
 }
 
-export const getBuoiFromTiet = (tiet: ClassModel['Tiet']): Buoi => {
-  if (tiet.includes('11')) return Buoi.Toi;
-  if (/1|2|3|4|5/g.test(tiet)) return Buoi.Sang;
-  if (/6|7|8|9|0/g.test(tiet)) return Buoi.Chieu;
-  return Buoi.N_A;
+export const getDanhSachTiet = (tiet: ClassModel['Tiet']): string[] => {
+  if (tiet === null || tiet === undefined || tiet === '') return [];
+  const str = String(tiet).trim();
+  if (str === '*') return ['*'];
+
+  // If separated by commas, spaces, or semicolons
+  if (/[,;\s]/.test(str)) {
+    return str
+      .split(/[,;\s]+/)
+      .map((s) => (s === '0' ? '10' : s.trim()))
+      .filter(Boolean);
+  }
+
+  // Evening classes with 2-digit periods: "111213", "1112", "1213", "1415", etc.
+  if (/^(1[1-6])+$/.test(str)) {
+    return str.match(/1[1-6]/g) || [str];
+  }
+
+  // Afternoon classes ending with "10": "678910", "78910", "8910", "910", "10", etc.
+  if (str.endsWith('10')) {
+    const prefix = str.slice(0, -2);
+    return [...prefix.split(''), '10'];
+  }
+
+  // Legacy format with '0' as period 10: "67890", "7890"
+  if (str.includes('0')) {
+    return str.split('').map((ch) => (ch === '0' ? '10' : ch));
+  }
+
+  // Standard single-digit sequence: "12345", "1234", "6789", etc.
+  return str.split('');
 };
 
-export const getDanhSachTiet = (tiet: ClassModel['Tiet']): string[] => {
-  if (tiet.includes(',')) return tiet.split(',');
-  if (tiet === '*') return ['*'];
-  return tiet.split('');
+export const getBuoiFromTiet = (tiet: ClassModel['Tiet']): Buoi => {
+  const listTiet = getDanhSachTiet(tiet);
+  if (!listTiet.length || listTiet.includes('*')) return Buoi.N_A;
+
+  if (listTiet.some((t) => ['11', '12', '13', '14', '15', '16'].includes(t))) {
+    return Buoi.Toi;
+  }
+  if (listTiet.some((t) => ['1', '2', '3', '4', '5'].includes(t))) {
+    return Buoi.Sang;
+  }
+  if (listTiet.some((t) => ['6', '7', '8', '9', '10'].includes(t))) {
+    return Buoi.Chieu;
+  }
+  return Buoi.N_A;
 };
 
 /**
