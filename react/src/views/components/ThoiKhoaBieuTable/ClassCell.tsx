@@ -66,7 +66,22 @@ type Props = {
   isOutsideTable?: boolean;
 } & React.TdHTMLAttributes<HTMLTableCellElement>;
 
-const getMonChonRoiKey = (data: ClassModel) => `${data.MaMH}-${data.ThucHanh}`;
+export function isThucHanhClass(data: ClassModel): boolean {
+  if (data.HTGD) {
+    const htgd = data.HTGD.toUpperCase();
+    if (htgd.includes('HT1') || htgd.includes('HT2') || htgd.includes('TH')) return true;
+    if (htgd === 'LT') return false;
+  }
+  // Check if MaLop has a lab suffix (e.g. SE347.R11.1, IT001.N11.1)
+  return /\.\d+$/.test(data.MaLop) && (data.MaLop.match(/\./g) || []).length >= 2;
+}
+
+export const getMonChonRoiKey = (data: ClassModel): string => {
+  const isTH = isThucHanhClass(data);
+  const typeKey = isTH ? 'TH' : data.HTGD || 'LT';
+  return `${data.MaMH}-${typeKey}`;
+};
+
 const useMonChonRoi = () => {
   const newRandomColors = useMemo(() => reverse([...randomColors]), []);
   const selectedClasses = useTkbStore(selectSelectedClassesBuoc3);
