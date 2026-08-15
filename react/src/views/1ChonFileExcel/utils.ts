@@ -314,7 +314,7 @@ export function parseWorkbookToTkb(wb: XLSX.WorkBook): ClassModelOriginal[] {
       // Infer MaMH if missing from MaLop (e.g. AI002.R11 -> AI002)
       const finalMaMH = maMH || (maLop.includes('.') ? maLop.split('.')[0] : maLop);
       const finalMaLop = maLop || finalMaMH;
-      const finalTenMH = tenMH || finalMaMH;
+      let finalTenMH = tenMH || finalMaMH;
 
       const rawStt: any = colMap.STT !== -1 ? row[colMap.STT] : undefined;
       const stt: number =
@@ -338,15 +338,30 @@ export function parseWorkbookToTkb(wb: XLSX.WorkBook): ClassModelOriginal[] {
           ? parseInt(String(rawThucHanh), 10) || 0
           : 0;
 
+      let maGV = colMap.MaGV !== -1 && Boolean(row[colMap.MaGV]) ? String(row[colMap.MaGV]).trim() : undefined;
+      let tenGV = colMap.TenGV !== -1 && Boolean(row[colMap.TenGV]) ? String(row[colMap.TenGV]).trim() : undefined;
+      let soTc = colMap.SoTc !== -1 ? parseInt(String(row[colMap.SoTc]), 10) || 0 : 0;
+
+      if (allParsedClasses.length > 0) {
+        const lastClass = allParsedClasses[allParsedClasses.length - 1];
+        const getBaseMaLop = (ml: string) => ml.split('.').slice(0, 2).join('.');
+        if (getBaseMaLop(finalMaLop) === getBaseMaLop(lastClass.MaLop)) {
+          if (!tenGV) tenGV = lastClass.TenGV;
+          if (!maGV) maGV = lastClass.MaGV;
+          if (!soTc) soTc = lastClass.SoTc;
+          if (!tenMH) finalTenMH = lastClass.TenMH;
+        }
+      }
+
       const parsedClass: ClassModelOriginal = {
         STT: stt,
         MaMH: finalMaMH,
         MaLop: finalMaLop,
         TenMH: finalTenMH,
-        MaGV: colMap.MaGV !== -1 && Boolean(row[colMap.MaGV]) ? String(row[colMap.MaGV]).trim() : undefined,
-        TenGV: colMap.TenGV !== -1 && Boolean(row[colMap.TenGV]) ? String(row[colMap.TenGV]).trim() : undefined,
+        MaGV: maGV,
+        TenGV: tenGV,
         SiSo: colMap.SiSo !== -1 && Boolean(row[colMap.SiSo]) ? String(row[colMap.SiSo]).trim() : '',
-        SoTc: colMap.SoTc !== -1 ? parseInt(String(row[colMap.SoTc]), 10) || 0 : 0,
+        SoTc: soTc,
         ThucHanh: thucHanh,
         HTGD: rawHtgd,
         Thu: sanitizeThu(colMap.Thu !== -1 ? row[colMap.Thu] : '*'),

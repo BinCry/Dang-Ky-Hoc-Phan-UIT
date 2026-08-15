@@ -297,6 +297,46 @@ describe('1ChonFileExcel utils', () => {
       expect(classes[3].PhongHoc).toBe('C205');
     });
 
+    it('inherits TenGV, MaGV, SoTc, and TenMH from previous row if MaLop base is same', () => {
+      const dataLT = [
+        ['TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN'],
+        [], [], [], [], [], [],
+        [
+          'STT', 'MÃ MH', 'MÃ LỚP', 'TÊN MÔN HỌC', '', 'MÃ GIẢNG VIÊN', 'TÊN GIẢNG VIÊN', 'SĨ SỐ', 'SỐ TC', 'THỰC HÀNH', 'HTGD', 'THỨ', 'TIẾT', 'CÁCH TUẦN', 'PHÒNG HỌC', 'Khóa học',
+        ],
+        [
+          2, 'CE119', 'CE119.R11.1', 'Thực hành kiến trúc máy tính', '', '80349', 'Trần Văn Quang', 30, 0, 1, 'HT1', 5, 1234, 2, 'C205', '2024',
+        ],
+        [
+          3, 'CE119', 'CE119.R11.2', '', '', '', '', 30, 0, 1, 'HT1', 5, 6789, 2, 'C206', '2024',
+        ],
+      ];
+
+      const wsLT = XLSX.utils.aoa_to_sheet(dataLT);
+      const wb: XLSX.WorkBook = {
+        SheetNames: ['TKB TH,DA,KLTN,TTTN'],
+        Sheets: {
+          'TKB TH,DA,KLTN,TTTN': wsLT,
+        },
+      };
+
+      const classes = parseWorkbookToTkb(wb);
+
+      expect(classes.length).toBe(2);
+
+      // Check Class 1
+      expect(classes[0].MaLop).toBe('CE119.R11.1');
+      expect(classes[0].TenMH).toBe('Thực hành kiến trúc máy tính');
+      expect(classes[0].MaGV).toBe('80349');
+      expect(classes[0].TenGV).toBe('Trần Văn Quang');
+
+      // Check Class 2 (Inherits)
+      expect(classes[1].MaLop).toBe('CE119.R11.2');
+      expect(classes[1].TenMH).toBe('Thực hành kiến trúc máy tính');
+      expect(classes[1].MaGV).toBe('80349');
+      expect(classes[1].TenGV).toBe('Trần Văn Quang');
+    });
+
     it('handles legacy fixed-format files properly', () => {
       const legacyData = [
         [
