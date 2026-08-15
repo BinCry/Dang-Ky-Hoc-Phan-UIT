@@ -343,13 +343,20 @@ export function parseWorkbookToTkb(wb: XLSX.WorkBook): ClassModelOriginal[] {
       let soTc = colMap.SoTc !== -1 ? parseInt(String(row[colMap.SoTc]), 10) || 0 : 0;
 
       if (allParsedClasses.length > 0) {
-        const lastClass = allParsedClasses[allParsedClasses.length - 1];
         const getBaseMaLop = (ml: string) => ml.split('.').slice(0, 2).join('.');
-        if (getBaseMaLop(finalMaLop) === getBaseMaLop(lastClass.MaLop)) {
-          if (!tenGV) tenGV = lastClass.TenGV;
-          if (!maGV) maGV = lastClass.MaGV;
-          if (!soTc) soTc = lastClass.SoTc;
-          if (!tenMH) finalTenMH = lastClass.TenMH;
+        
+        // Search backwards for the last class with the same MaLop base
+        // This is crucial because LT classes (Sheet 1) and TH classes (Sheet 2) are separated,
+        // and even within the same sheet, some classes might be skipped.
+        for (let i = allParsedClasses.length - 1; i >= 0; i--) {
+          const lastClass = allParsedClasses[i];
+          if (getBaseMaLop(finalMaLop) === getBaseMaLop(lastClass.MaLop)) {
+            if (!tenGV) tenGV = lastClass.TenGV;
+            if (!maGV) maGV = lastClass.MaGV;
+            if (!soTc) soTc = lastClass.SoTc;
+            if (!tenMH) finalTenMH = lastClass.TenMH;
+            break;
+          }
         }
       }
 
