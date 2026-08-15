@@ -45,9 +45,28 @@ export const getDanhSachTiet = (tiet: ClassModel['Tiet']): string[] => {
       .filter(Boolean);
   }
 
-  // Evening classes with 2-digit periods: "111213", "1112", "1213", "1415", etc.
-  if (/^(1[1-6])+$/.test(str)) {
+  // Handle hyphen ranges: "1-2", "1-5", "6-10", "11-13"
+  const rangeMatch = str.match(/^(\d+)\s*[-–—]\s*(\d+)$/);
+  if (rangeMatch) {
+    const start = parseInt(rangeMatch[1], 10);
+    const end = parseInt(rangeMatch[2], 10);
+    if (start > 0 && end >= start && end <= 16) {
+      const result: string[] = [];
+      for (let i = start; i <= end; i++) {
+        result.push(String(i));
+      }
+      return result;
+    }
+  }
+
+  // Multi-period evening classes with 2-digit periods (at least 2 periods, length >= 4): "111213", "1112", "1213", "141516", etc.
+  if (/^(?:1[1-6]){2,}$/.test(str)) {
     return str.match(/1[1-6]/g) || [str];
+  }
+
+  // Single evening period "11"
+  if (str === '11') {
+    return ['11'];
   }
 
   // Afternoon classes ending with "10": "678910", "78910", "8910", "910", "10", etc.
@@ -61,7 +80,7 @@ export const getDanhSachTiet = (tiet: ClassModel['Tiet']): string[] => {
     return str.split('').map((ch) => (ch === '0' ? '10' : ch));
   }
 
-  // Standard single-digit sequence: "12345", "1234", "6789", etc.
+  // Standard single-digit sequence: "12", "45", "123", "1234", "12345", "67", "678", "6789", etc.
   return str.split('');
 };
 
