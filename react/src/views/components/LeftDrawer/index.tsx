@@ -15,7 +15,7 @@ import GitHubButton from 'react-github-btn';
 import { NavLink, useHistory, useLocation } from 'react-router-dom';
 import Typewriter from 'typewriter-effect';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { tracker } from '../../..';
+import { tracker } from '../../../tracker';
 import { ROUTES } from '../../../constants';
 import { useDrawerStore } from '../../../zus';
 

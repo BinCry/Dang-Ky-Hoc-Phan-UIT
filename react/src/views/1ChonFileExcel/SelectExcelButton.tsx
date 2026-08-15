@@ -5,8 +5,8 @@ import { closeSnackbar, enqueueSnackbar } from 'notistack';
 import React, { ChangeEventHandler } from 'react';
 import XLSX from 'xlsx';
 import { selectDataExcel, useTkbStore } from '../../zus';
-import { tracker } from '../..';
-import { arrayToTkbObject, getLastUpdateString, sheetJSFT, toDateTimeString } from './utils';
+import { tracker } from '../../tracker';
+import { getLastUpdateString, parseWorkbookToTkb, sheetJSFT, toDateTimeString } from './utils';
 
 const Bold = ({ children }) => <b style={{ marginLeft: 5 }}>{children}</b>;
 
@@ -22,48 +22,55 @@ function SelectExcelButton() {
       const reader = new FileReader();
       const rABS = !!reader.readAsBinaryString;
       reader.onload = (e) => {
-        const bstr = e?.target?.result;
-        const wb = XLSX.read(bstr, { type: rABS ? 'binary' : 'array' });
-        const wsLyThuyet = wb.Sheets[wb.SheetNames[0]];
-        const wsThucHanh = wb.Sheets[wb.SheetNames[1]];
-        const dataLyThuyet = XLSX.utils.sheet_to_json<any[][]>(wsLyThuyet, { header: 1 });
-        const dataThucHanh = XLSX.utils.sheet_to_json<any[][]>(wsThucHanh, { header: 1 });
-        const dataInArray = [...dataLyThuyet, ...dataThucHanh].filter(
-          (row) => typeof row[0] === 'number', // những row có cột 0 là STT (STT là number) thì mới là data ta cần
-        );
-        if (dataInArray.length) {
-          const now = new Date();
-          setDataExcel({
-            data: dataInArray.map((array) => arrayToTkbObject(array)),
-            fileName: file.name,
-            lastUpdateTimestamp: now.getTime(), // Epoch timestamp for precise comparison
-            lastUpdate: toDateTimeString(now), // Keep for backward compatibility
-          });
-          enqueueSnackbar(
-            <>
-              Upload file thành công <Bold>{file.name}</Bold>
-            </>,
-            {
-              variant: 'success',
-              action: (key) => (
-                <Button
-                  size="small"
-                  color="inherit"
-                  onClick={() => {
-                    closeSnackbar(key);
-                  }}
-                >
-                  Đã hiểu
-                </Button>
-              ),
-            },
-          );
-          tracker.track('[page1] upload_excel_resulted', { success: true, fileName: file.name });
-        } else {
-          enqueueSnackbar('Không đúng định dạng file của trường', {
+        try {
+          const bstr = e?.target?.result;
+          const wb = XLSX.read(bstr, { type: rABS ? 'binary' : 'array' });
+          const parsedData = parseWorkbookToTkb(wb);
+
+          if (parsedData.length) {
+            const now = new Date();
+            setDataExcel({
+              data: parsedData,
+              fileName: file.name,
+              lastUpdateTimestamp: now.getTime(), // Epoch timestamp for precise comparison
+              lastUpdate: toDateTimeString(now), // Keep for backward compatibility
+            });
+            enqueueSnackbar(
+              <>
+                Upload file thành công <Bold>{file.name}</Bold> ({parsedData.length} lớp)
+              </>,
+              {
+                variant: 'success',
+                action: (key) => (
+                  <Button
+                    size="small"
+                    color="inherit"
+                    onClick={() => {
+                      closeSnackbar(key);
+                    }}
+                  >
+                    Đã hiểu
+                  </Button>
+                ),
+              },
+            );
+            tracker.track('[page1] upload_excel_resulted', {
+              success: true,
+              fileName: file.name,
+              count: parsedData.length,
+            });
+          } else {
+            enqueueSnackbar('Không tìm thấy dữ liệu thời khóa biểu hợp lệ trong file', {
+              variant: 'error',
+            });
+            tracker.track('[page1] upload_excel_resulted', { success: false });
+          }
+        } catch (error) {
+          console.error('Error parsing Excel file:', error);
+          enqueueSnackbar('Lỗi khi đọc file Excel, vui lòng kiểm tra lại định dạng file', {
             variant: 'error',
           });
-          tracker.track('[page1] upload_excel_resulted', { success: false });
+          tracker.track('[page1] upload_excel_resulted', { success: false, error: String(error) });
         }
       };
       if (rABS) reader.readAsBinaryString(file);

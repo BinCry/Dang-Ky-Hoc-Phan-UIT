@@ -1,5 +1,5 @@
 import Tooltip from '@mui/material/Tooltip';
-import { tracker } from '../..';
+import { tracker } from '../../tracker';
 import { COLORS } from '../../constants';
 import { getTongSoTcJudgement } from '../../utils';
 import { selectTongSoTcSelected, useTkbStore } from '../../zus';

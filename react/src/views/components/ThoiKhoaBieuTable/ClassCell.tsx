@@ -6,7 +6,7 @@ import constate from 'constate';
 import groupBy from 'lodash/groupBy';
 import reverse from 'lodash/reverse';
 import { useMemo, useState } from 'react';
-import { tracker } from '../../..';
+import { tracker } from '../../../tracker';
 import { ClassModel } from '../../../types';
 import { isSameAgGridRowId, uniqMaLop } from '../../../utils';
 import { selectIsChiVeTkb, selectSelectedClasses, selectSelectedClassesBuoc3, useTkbStore } from '../../../zus';
@@ -217,8 +217,8 @@ function ClassCell({ data, isOutsideTable = false, ...restProps }: Props) {
                 style={{ color: getWarningColor(data) }}
               />
             </Tooltip>
-          )}{' '}
-          - {NgonNgu}
+          )}
+          {NgonNgu ? ` - ${NgonNgu}` : ''}
         </strong>
         <br />
         {TenMH}
@@ -226,10 +226,18 @@ function ClassCell({ data, isOutsideTable = false, ...restProps }: Props) {
         <strong>{TenGV}</strong>
         <br />
         {PhongHoc}
-        <br />
-        BĐ: {NBD}
-        <br />
-        KT: {NKT}
+        {NBD ? (
+          <>
+            <br />
+            BĐ: {NBD}
+          </>
+        ) : null}
+        {NKT ? (
+          <>
+            <br />
+            KT: {NKT}
+          </>
+        ) : null}
         <br />
         {isOutsideTable && (
           <>

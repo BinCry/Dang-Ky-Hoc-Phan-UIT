@@ -3,7 +3,8 @@ import { Timestamp, doc, setDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import { doWhenIdle, getBrowserName, getOsName, getVisitorFingerprint } from './tracking.utils';
 import { log } from './utils';
-import { analytics, db, isProd } from '.';
+import { analytics, db } from './firebase';
+import { isProd } from './constants';
 
 type AllowedPropertyValues = string | number | boolean | null | undefined;
 type EventGroup = 'tkb_table' | 'so_tc' | 'drawer' | 'page1' | 'page2' | 'page3' | 'page';
@@ -189,4 +190,28 @@ export const buildTracker = () => {
   };
 };
 
-// TODO: write unit test
+let _trackerInstance: ReturnType<typeof buildTracker> | null = null;
+export const getTracker = () => {
+  if (!_trackerInstance && typeof window !== 'undefined') {
+    _trackerInstance = buildTracker();
+  }
+  return _trackerInstance;
+};
+
+export const tracker = {
+  track: (eventName: EventRecord['name'], properties?: EventRecord['data']) => {
+    try {
+      getTracker()?.track(eventName, properties);
+    } catch {
+      // ignore
+    }
+  },
+  updateProperty: <TKey extends keyof SessionRecord>(key: TKey, value: SessionRecord[TKey]) => {
+    try {
+      getTracker()?.updateProperty(key, value);
+    } catch {
+      // ignore
+    }
+  },
+};
+

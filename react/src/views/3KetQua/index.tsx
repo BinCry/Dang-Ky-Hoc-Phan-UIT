@@ -2,7 +2,7 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
-import { tracker } from '../..';
+import { tracker } from '../../tracker';
 import SoTinChi from '../components/SoTinChi';
 import ThoiKhoaBieuTable from '../components/ThoiKhoaBieuTable';
 import { selectIsChiVeTkb, selectTongSoTcBuoc3, useTkbStore } from '../../zus';

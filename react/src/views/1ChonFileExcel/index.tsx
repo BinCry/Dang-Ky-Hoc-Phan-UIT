@@ -1,6 +1,6 @@
 import { Alert, AlertProps } from '@mui/material';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
-import { tracker } from '../..';
+import { tracker } from '../../tracker';
 import { selectDataExcel, useTkbStore } from '../../zus';
 import SelectExcelButton from './SelectExcelButton';
 import { getLastUpdateString } from './utils';

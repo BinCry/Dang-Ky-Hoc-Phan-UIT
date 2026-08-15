@@ -1,6 +1,6 @@
 import { AgGridReact } from 'ag-grid-react';
 import { ClassModel } from 'types';
-import { tracker } from '../../..';
+import { tracker } from '../../../tracker';
 import { useDrawerStore } from '../../../zus';
 import './styles.css';
 import { useGridOptions } from './utils';

@@ -18,7 +18,7 @@ import { closeSnackbar, enqueueSnackbar } from 'notistack';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Buoi, ClassModel } from 'types';
 import { useDebouncedCallback } from 'use-debounce';
-import { tracker } from '../../..';
+import { tracker } from '../../../tracker';
 import SoTinChi from '../../components/SoTinChi';
 import ThoiKhoaBieuTable from '../../components/ThoiKhoaBieuTable';
 import {

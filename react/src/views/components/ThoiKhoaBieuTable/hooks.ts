@@ -2,7 +2,7 @@ import constate from 'constate';
 import html2canvas from 'html2canvas';
 import React from 'react';
 import { enqueueSnackbar } from 'notistack';
-import { tracker } from '../../..';
+import { tracker } from '../../../tracker';
 import { ClassModel } from '../../../types';
 import { findOverlapedClasses, getDanhSachTiet } from '../../../utils';
 import { selectPhanLoaiHocTrenTruong, useTkbStore } from '../../../zus';

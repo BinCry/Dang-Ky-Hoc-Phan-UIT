@@ -2,7 +2,7 @@ import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import Skeleton from '@mui/material/Skeleton';
-import { tracker } from '../..';
+import { tracker } from '../../tracker';
 
 function VideoInstruction() {
   return (

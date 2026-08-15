@@ -7,7 +7,7 @@ import TextField from '@mui/material/TextField';
 import { enqueueSnackbar } from 'notistack';
 import { forwardRef, useMemo, useState } from 'react';
 import type { HTMLAttributes } from 'react';
-import { tracker } from '../..';
+import { tracker } from '../../tracker';
 import { extractListMaLop } from '../../utils';
 import { selectIsChiVeTkb, selectPhanLoaiHocTrenTruong, selectTextareaChiVeTkb, useTkbStore } from '../../zus';
 import { getScriptDkhp } from './utils';
