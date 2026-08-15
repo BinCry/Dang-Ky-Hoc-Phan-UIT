@@ -222,7 +222,7 @@ describe('1ChonFileExcel utils', () => {
           'TÊN MÔN HỌC',
           '',
           'MÃ GIẢNG VIÊN',
-          'TÊN GIẢNG VIÊN',
+          'TÊN TRỢ GIẢNG',
           'SĨ SỐ',
           'SỐ TC',
           'THỰC HÀNH',
@@ -302,7 +302,7 @@ describe('1ChonFileExcel utils', () => {
         ['TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN'],
         [], [], [], [], [], [],
         [
-          'STT', 'MÃ MH', 'MÃ LỚP', 'TÊN MÔN HỌC', '', 'MÃ GIẢNG VIÊN', 'TÊN GIẢNG VIÊN', 'SĨ SỐ', 'SỐ TC', 'THỰC HÀNH', 'HTGD', 'THỨ', 'TIẾT', 'CÁCH TUẦN', 'PHÒNG HỌC', 'Khóa học',
+          'STT', 'MÃ MH', 'MÃ LỚP', 'TÊN MÔN HỌC', '', 'MÃ GIẢNG VIÊN', 'TÊN TRỢ GIẢNG', 'SĨ SỐ', 'SỐ TC', 'THỰC HÀNH', 'HTGD', 'THỨ', 'TIẾT', 'CÁCH TUẦN', 'PHÒNG HỌC', 'Khóa học',
         ],
         [
           2, 'CE119', 'CE119.R11.1', 'Thực hành kiến trúc máy tính', '', '80349', 'Trần Văn Quang', 30, 0, 1, 'HT1', 5, 1234, 2, 'C205', '2024',

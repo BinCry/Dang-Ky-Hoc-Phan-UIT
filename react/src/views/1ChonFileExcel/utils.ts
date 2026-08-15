@@ -66,6 +66,9 @@ export const FIELD_MATCHERS: Record<keyof ClassModelOriginal, (norm: string) => 
     s === 'gv giang day' ||
     s === 'gvgiangday' ||
     s === 'cb giang day' ||
+    s === 'ten tro giang' ||
+    s === 'tentrogiang' ||
+    s === 'tro giang' ||
     s === 'lecturer' ||
     s === 'instructor',
   SiSo: (s) =>
@@ -345,6 +348,7 @@ export function parseWorkbookToTkb(wb: XLSX.WorkBook): ClassModelOriginal[] {
       if (allParsedClasses.length > 0) {
         const getBaseMaLop = (ml: string) => ml.split('.').slice(0, 2).join('.');
         
+        let foundMatch = false;
         // Search backwards for the last class with the same MaLop base
         // This is crucial because LT classes (Sheet 1) and TH classes (Sheet 2) are separated,
         // and even within the same sheet, some classes might be skipped.
@@ -355,7 +359,23 @@ export function parseWorkbookToTkb(wb: XLSX.WorkBook): ClassModelOriginal[] {
             if (!maGV) maGV = lastClass.MaGV;
             if (!soTc) soTc = lastClass.SoTc;
             if (!tenMH) finalTenMH = lastClass.TenMH;
+            foundMatch = true;
             break;
+          }
+        }
+
+        // Fallback: if no direct parent base is found (e.g. 100% practical class like CE119),
+        // try to find a general subject row where MaLop is exactly the MaMH.
+        if (!foundMatch) {
+          for (let i = allParsedClasses.length - 1; i >= 0; i--) {
+            const lastClass = allParsedClasses[i];
+            if (lastClass.MaLop === finalMaMH) { // exact match with MaMH, e.g. 'CE119'
+              if (!tenGV) tenGV = lastClass.TenGV;
+              if (!maGV) maGV = lastClass.MaGV;
+              if (!soTc) soTc = lastClass.SoTc;
+              if (!tenMH) finalTenMH = lastClass.TenMH;
+              break;
+            }
           }
         }
       }
