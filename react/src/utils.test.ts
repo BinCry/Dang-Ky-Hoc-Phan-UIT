@@ -191,9 +191,26 @@ describe('utils - calcTongSoTC', () => {
       MaMH: 'CE119',
       MaLop: 'CE119.R11.1',
       SoTc: 1, // Practice only course
+      Thu: '6',
+      Tiet: '1234',
     });
 
     // Selecting CE118 (LT + TH) should result in 3 credits, plus CE119 (1 credit) = 4 total
     expect(calcTongSoTC([classLT, classTH, classOnlyTH])).toBe(4);
+  });
+
+  it('falls back to MaLop when MaMH is missing', () => {
+    const classLT = createMockClass({
+      MaMH: '',
+      MaLop: 'CE120.R11',
+      SoTc: 4,
+    });
+    const classTH = createMockClass({
+      MaMH: '',
+      MaLop: 'CE120.R11.1',
+      SoTc: 1,
+    });
+
+    expect(calcTongSoTC([classLT, classTH])).toBe(4);
   });
 });

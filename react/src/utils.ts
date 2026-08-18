@@ -4,26 +4,39 @@ import { TTrungTkb } from './views/2XepLop/TrungTkbDialog';
 import { isProd } from './constants';
 
 export function uniqMaLop(classes: ClassModel[]): ClassModel[] {
-  return uniqBy(classes, 'MaLop'); // Có nhiều lớp học nhiều buổi 1 tuần, xuất hiện nhiều lần, nhưng chỉ nên cộng 1 lần
+  return uniqBy(classes, 'MaLop');
 }
+
+const getCreditGroupKey = (classModel: ClassModel) => {
+  const maMH = String(classModel.MaMH ?? '').trim();
+  if (maMH) return maMH;
+
+  const maLop = String(classModel.MaLop ?? '').trim();
+  if (!maLop) return '';
+
+  return maLop.includes('.') ? maLop.split('.')[0] : maLop;
+};
 
 export function calcTongSoTC(classes: ClassModel[]) {
   const { kept } = findOverlapedClasses(classes);
   const unique = uniqMaLop(kept);
-  
-  // Group by MaMH and take the MAX of SoTc.
-  // Because LT class has the total credits (e.g. 3) and TH class has practice credits (e.g. 1),
-  // summing them by MaLop will result in double counting (3 + 1 = 4 instead of 3).
-  const creditsByMaMH = new Map<string, number>();
+
+  // Group by the course code and take the MAX of SoTc.
+  // Many datasets contain multiple rows for the same course (LT, TH, or duplicated split rows),
+  // but the displayed credit for that course should only be counted once.
+  const creditsByCourse = new Map<string, number>();
   unique.forEach((c) => {
-    const currentMax = creditsByMaMH.get(c.MaMH) || 0;
+    const creditGroupKey = getCreditGroupKey(c);
+    if (!creditGroupKey) return;
+
+    const currentMax = creditsByCourse.get(creditGroupKey) || 0;
     if (c.SoTc > currentMax) {
-      creditsByMaMH.set(c.MaMH, c.SoTc);
+      creditsByCourse.set(creditGroupKey, c.SoTc);
     }
   });
 
   let total = 0;
-  creditsByMaMH.forEach((soTc) => {
+  creditsByCourse.forEach((soTc) => {
     total += soTc;
   });
 
@@ -33,10 +46,10 @@ export function calcTongSoTC(classes: ClassModel[]) {
 export function getTongSoTcJudgement(tongSoTC: number) {
   const text =
     tongSoTC < 14
-      ? 'Chưa đạt số TC quy định: 14'
+      ? '\u0043h\u01b0a \u0111\u1ea1t s\u1ed1 TC quy \u0111\u1ecbnh: 14'
       : tongSoTC > 24
-      ? 'Vượt quá số TC quy định: 24'
-      : 'Thỏa mãn số TC quy định 14-24';
+      ? '\u0056\u01b0\u1ee3t qu\u00e1 s\u1ed1 TC quy \u0111\u1ecbnh: 24'
+      : '\u0054h\u1ecf\u0061 m\u00e3n s\u1ed1 TC quy \u0111\u1ecbnh 14-24';
   const isOk = tongSoTC >= 14 && tongSoTC <= 24;
   return {
     isOk,
@@ -54,7 +67,6 @@ export const getDanhSachTiet = (tiet: ClassModel['Tiet']): string[] => {
   const str = String(tiet).trim();
   if (str === '*') return ['*'];
 
-  // If separated by commas, spaces, or semicolons
   if (/[,;\s]/.test(str)) {
     return str
       .split(/[,;\s]+/)
@@ -62,8 +74,7 @@ export const getDanhSachTiet = (tiet: ClassModel['Tiet']): string[] => {
       .filter(Boolean);
   }
 
-  // Handle hyphen ranges: "1-2", "1-5", "6-10", "11-13"
-  const rangeMatch = str.match(/^(\d+)\s*[-–—]\s*(\d+)$/);
+  const rangeMatch = str.match(/^(\d+)\s*[-\u2013\u2014]\s*(\d+)$/);
   if (rangeMatch) {
     const start = parseInt(rangeMatch[1], 10);
     const end = parseInt(rangeMatch[2], 10);
@@ -76,28 +87,23 @@ export const getDanhSachTiet = (tiet: ClassModel['Tiet']): string[] => {
     }
   }
 
-  // Multi-period evening classes with 2-digit periods (at least 2 periods, length >= 4): "111213", "1112", "1213", "141516", etc.
   if (/^(?:1[1-6]){2,}$/.test(str)) {
     return str.match(/1[1-6]/g) || [str];
   }
 
-  // Single evening period "11"
   if (str === '11') {
     return ['11'];
   }
 
-  // Afternoon classes ending with "10": "678910", "78910", "8910", "910", "10", etc.
   if (str.endsWith('10')) {
     const prefix = str.slice(0, -2);
     return [...prefix.split(''), '10'];
   }
 
-  // Legacy format with '0' as period 10: "67890", "7890"
   if (str.includes('0')) {
     return str.split('').map((ch) => (ch === '0' ? '10' : ch));
   }
 
-  // Standard single-digit sequence: "12", "45", "123", "1234", "12345", "67", "678", "6789", etc.
   return str.split('');
 };
 
@@ -118,9 +124,9 @@ export const getBuoiFromTiet = (tiet: ClassModel['Tiet']): Buoi => {
 };
 
 /**
- * "*": Không lên trường
- * 2-1, 2-2, 2-3: Thứ 2, tiết 1,2,3
- * 7-11, 7-12, 7-13: Thứ 7, tiết 11,12,13
+ * "*": KhÃ´ng lÃªn trÆ°á»ng
+ * 2-1, 2-2, 2-3: Thá»© 2, tiáº¿t 1,2,3
+ * 7-11, 7-12, 7-13: Thá»© 7, tiáº¿t 11,12,13
  */
 type ValidTimeSlot = `${string}-${string}`;
 type TimeSlots = '*' | ValidTimeSlot[];
@@ -143,8 +149,6 @@ export const hasOverlapSchedule = (classAs: ClassModel[], classB: ClassModel) =>
   });
 };
 
-// Thường thì MaLop alone is enough because most of the classes only appear once a week or once every 2 weeks, nhưng mà có thể có môn Anh Văn học 1 tuần tới 2 buổi, nên cần có thêm Thu và Tiet
-// TODO: maybe use STT?
 export const getAgGridRowId = (classModel: ClassModel): string => {
   return classModel.MaLop + classModel.Thu + classModel.Tiet;
 };
@@ -154,7 +158,6 @@ export const isSameAgGridRowId = (class1: ClassModel, class2: ClassModel) => {
 };
 
 export const findOverlapedClasses = (
-  /** the first elements in the array will have higher priority, it's OK to have duplicated classes */
   classes: ClassModel[],
 ): { kept: ClassModel[]; redundant: TTrungTkb[] } => {
   const kept: ClassModel[] = [];
@@ -175,7 +178,6 @@ export const findOverlapedClasses = (
 
     processedAgGridRowIds.add(agGridRowId);
     const existingClassOverlapped = findExistingOverlap(addingClass);
-    // TODO: refactor the mess below
     const existingRedundant =
       existingClassOverlapped && redundant.find((it) => isSameAgGridRowId(it.existing, existingClassOverlapped));
     if (existingRedundant) {
