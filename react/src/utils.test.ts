@@ -176,7 +176,7 @@ describe('utils - hasOverlapSchedule', () => {
 });
 
 describe('utils - calcTongSoTC', () => {
-  it('correctly calculates total credits grouping by MaMH', () => {
+  it('correctly collapses duplicate LT rows for the same subject', () => {
     const classLT = createMockClass({
       MaMH: 'CE118',
       MaLop: 'CE118.R11',
@@ -197,6 +197,25 @@ describe('utils - calcTongSoTC', () => {
 
     // Selecting CE118 (LT + TH) should result in 3 credits, plus CE119 (1 credit) = 4 total
     expect(calcTongSoTC([classLT, classTH, classOnlyTH])).toBe(4);
+  });
+
+  it('counts LT and TH as separate credit groups for the same subject', () => {
+    const classLT = createMockClass({
+      MaMH: 'SE100',
+      MaLop: 'SE100.R11',
+      HTGD: 'LT',
+      SoTc: 3,
+    });
+    const classTH = createMockClass({
+      MaMH: 'SE100',
+      MaLop: 'SE100.R11.1',
+      HTGD: 'HT1',
+      SoTc: 1,
+      Thu: '6',
+      Tiet: '1234',
+    });
+
+    expect(calcTongSoTC([classLT, classTH])).toBe(4);
   });
 
   it('falls back to MaLop when MaMH is missing', () => {

@@ -9,21 +9,28 @@ export function uniqMaLop(classes: ClassModel[]): ClassModel[] {
 
 const getCreditGroupKey = (classModel: ClassModel) => {
   const maMH = String(classModel.MaMH ?? '').trim();
-  if (maMH) return maMH;
-
   const maLop = String(classModel.MaLop ?? '').trim();
-  if (!maLop) return '';
+  const subjectKey = maMH || (maLop ? (maLop.includes('.') ? maLop.split('.')[0] : maLop) : '');
+  if (!subjectKey) return '';
 
-  return maLop.includes('.') ? maLop.split('.')[0] : maLop;
+  const htgd = String(classModel.HTGD ?? '').trim().toUpperCase();
+  const isThucHanh =
+    htgd.includes('HT1') || htgd.includes('HT2') || htgd.includes('TH')
+      ? true
+      : htgd === 'LT'
+      ? false
+      : /\.\d+$/.test(maLop) && (maLop.match(/\./g) || []).length >= 2;
+
+  return `${subjectKey}-${isThucHanh ? 'TH' : htgd || 'LT'}`;
 };
 
 export function calcTongSoTC(classes: ClassModel[]) {
   const { kept } = findOverlapedClasses(classes);
   const unique = uniqMaLop(kept);
 
-  // Group by the course code and take the MAX of SoTc.
-  // Many datasets contain multiple rows for the same course (LT, TH, or duplicated split rows),
-  // but the displayed credit for that course should only be counted once.
+  // Group by subject + delivery type, then take the MAX of SoTc within each bucket.
+  // This keeps duplicate LT rows collapsed, while still counting LT and TH separately
+  // when the spreadsheet really contains both components.
   const creditsByCourse = new Map<string, number>();
   unique.forEach((c) => {
     const creditGroupKey = getCreditGroupKey(c);
