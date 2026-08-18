@@ -10,7 +10,7 @@ import type { HTMLAttributes } from 'react';
 import { tracker } from '../../tracker';
 import { extractListMaLop } from '../../utils';
 import { selectIsChiVeTkb, selectPhanLoaiHocTrenTruong, selectTextareaChiVeTkb, useTkbStore } from '../../zus';
-import { getScriptDkhp } from './utils';
+import { getBotScriptDkhp, getScriptDkhp } from './utils';
 
 const DEFAULT_TOOLTIP = 'Click để sao chép';
 const COPIED_TOOLTIP = 'Đã sao chép';
@@ -48,6 +48,7 @@ const useCommon = () => {
   const cacLop = useTkbStore(selectPhanLoaiHocTrenTruong);
   const listMaLop = useMemo(() => extractListMaLop(cacLop.flat()), [cacLop]);
   const script = useMemo(() => getScriptDkhp(listMaLop), [listMaLop]);
+  const botScript = useMemo(() => getBotScriptDkhp(listMaLop), [listMaLop]);
   const hasLop = listMaLop.length > 0;
 
   const isChiVeTkb = useTkbStore(selectIsChiVeTkb);
@@ -64,11 +65,17 @@ const useCommon = () => {
     return script;
   })();
 
+  const botScriptInputValue = (() => {
+    if (!hasLop) return 'Chưa có lớp nào';
+    return botScript;
+  })();
+
   return {
     hasLop,
     isChiVeTkb,
     dsLopInputValue,
     scriptInputValue,
+    botScriptInputValue,
   };
 };
 
@@ -77,7 +84,7 @@ export function ScriptDangKyInput() {
   const [isCopying, setIsCopying] = useState(false);
   const { hasLop, scriptInputValue } = useCommon();
   return (
-    <Grid item xs={6} style={{ paddingRight: 0 }}>
+    <Grid item xs={12} md={4}>
       <TextField
         label={'Script đăng ký nhanh'}
         fullWidth
@@ -126,7 +133,7 @@ export function DanhSachLopInput() {
   const useToolXepLop = !isChiVeTkb;
 
   return (
-    <Grid item xs={6}>
+    <Grid item xs={12} md={4}>
       {/* TODO: refactor the mess */}
 
       <TextField
@@ -163,6 +170,53 @@ export function DanhSachLopInput() {
                 </IconButton>
               </Tooltip>
             ) : null,
+        }}
+      />
+    </Grid>
+  );
+}
+
+export function BotScriptDangKyInput() {
+  const theme = useTheme();
+  const [isCopying, setIsCopying] = useState(false);
+  const { hasLop, botScriptInputValue } = useCommon();
+  return (
+    <Grid item xs={12} md={4}>
+      <TextField
+        label={'Bot Puppeteer siêu tốc (Code Nodejs)'}
+        fullWidth
+        size="small"
+        multiline
+        rows={2}
+        variant="outlined"
+        value={botScriptInputValue}
+        disabled={!hasLop}
+        inputProps={{ readOnly: true }}
+        sx={getReadonlySx(theme)}
+        InputProps={{
+          inputComponent: CustomInputComponent,
+          endAdornment: hasLop ? (
+            <Tooltip title={isCopying ? COPIED_TOOLTIP : DEFAULT_TOOLTIP}>
+              <IconButton
+                onClick={() => {
+                  tracker.track('[page3] btn_copy_bot_script_clicked');
+                  navigator.clipboard.writeText(botScriptInputValue).then(
+                    () => {
+                      setIsCopying(true);
+                      setTimeout(() => setIsCopying(false), 3000);
+                    },
+                    () => {
+                      enqueueSnackbar('Không thể sao chép', { variant: 'error' });
+                    },
+                  );
+                }}
+                edge="end"
+                size="small"
+              >
+                <ContentCopyIcon color={isCopying ? 'primary' : undefined} />
+              </IconButton>
+            </Tooltip>
+          ) : undefined,
         }}
       />
     </Grid>

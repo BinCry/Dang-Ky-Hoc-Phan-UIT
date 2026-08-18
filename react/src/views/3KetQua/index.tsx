@@ -6,7 +6,7 @@ import { tracker } from '../../tracker';
 import SoTinChi from '../components/SoTinChi';
 import ThoiKhoaBieuTable from '../components/ThoiKhoaBieuTable';
 import { selectIsChiVeTkb, selectTongSoTcBuoc3, useTkbStore } from '../../zus';
-import ScriptDangKyInput, { DanhSachLopInput } from './ScriptDangKyInput';
+import ScriptDangKyInput, { BotScriptDangKyInput, DanhSachLopInput } from './ScriptDangKyInput';
 
 function Index() {
   const setIsChiVeTkb = useTkbStore((s) => s.setIsChiVeTkb);
@@ -48,6 +48,7 @@ function Index() {
       <Grid container spacing={2} style={{ marginBottom: 10, marginTop: -10 }}>
         <DanhSachLopInput />
         <ScriptDangKyInput />
+        <BotScriptDangKyInput />
       </Grid>
       <ThoiKhoaBieuTable />
     </div>
