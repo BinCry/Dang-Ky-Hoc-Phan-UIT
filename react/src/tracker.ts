@@ -1,6 +1,5 @@
 import { logEvent } from 'firebase/analytics';
 import { Timestamp, doc, setDoc } from 'firebase/firestore';
-import ReactGA from 'react-ga4';
 import { doWhenIdle, getBrowserName, getOsName, getVisitorFingerprint } from './tracking.utils';
 import { log } from './utils';
 import { analytics, db } from './firebase';
@@ -65,10 +64,9 @@ export const buildTracker = () => {
     });
     doWhenIdle(cacheToLocalStorage);
 
-    // firebase analytics
-    logEvent(analytics, eventName, properties);
-    // GA4
-    ReactGA.event(eventName, properties);
+    if (analytics) {
+      logEvent(analytics, eventName, properties);
+    }
   };
 
   const updateProperty = <TKey extends keyof SessionRecord>(key: TKey, value: SessionRecord[TKey]) => {
@@ -142,6 +140,7 @@ export const buildTracker = () => {
   // - multiple tabs (multiple sessions) opened simultaneously
   // - events from previous sessions (closed unexpectedly), but not yet dumped to firestore
   const dumpToFirestore = async () => {
+    if (!db) return;
     if (isDumpingToFirestore) return;
     isDumpingToFirestore = true;
     const cachedSessions = getCachedSessionsInLocalStorage();

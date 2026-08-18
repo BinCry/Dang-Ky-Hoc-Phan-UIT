@@ -1,12 +1,9 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { lightBlue } from '@mui/material/colors';
 import { StyledEngineProvider, Theme, ThemeProvider, adaptV4Theme, createTheme } from '@mui/material/styles';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/react';
 import { LicenseManager } from 'ag-grid-enterprise';
 import { SnackbarProvider } from 'notistack';
 import ReactDOM from 'react-dom';
-import ReactGA from 'react-ga4';
 import { tracker } from './tracker';
 import { checkAdBlocker } from './tracking.utils';
 import { useDrawerStore, useUtilsStore } from './zus';
@@ -32,7 +29,6 @@ checkAdBlocker().then((hasAdBlocker) => {
 });
 
 LicenseManager.setLicenseKey('I_<3_SCHOOL_NDEwMjMzMzIwMDAwMA==afc05c982fa05a2578eb9cab60c42d78');
-ReactGA.initialize('G-HK94GQMRY2');
 
 const theme = createTheme(
   adaptV4Theme({
@@ -52,8 +48,6 @@ ReactDOM.render(
   <SnackbarProvider>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <Analytics />
-        <SpeedInsights />
         <CssBaseline />
         <App />
       </ThemeProvider>
