@@ -1,3 +1,3 @@
-export const app = null;
-export const analytics = null;
-export const db = null;
+export const app: any = null;
+export const analytics: any = null;
+export const db: any = null;
