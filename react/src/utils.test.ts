@@ -174,3 +174,26 @@ describe('utils - hasOverlapSchedule', () => {
     expect(hasOverlapSchedule([classLT], classLT)).toBe(false);
   });
 });
+
+describe('utils - calcTongSoTC', () => {
+  it('correctly calculates total credits grouping by MaMH', () => {
+    const classLT = createMockClass({
+      MaMH: 'CE118',
+      MaLop: 'CE118.R11',
+      SoTc: 3, // Total course credits
+    });
+    const classTH = createMockClass({
+      MaMH: 'CE118',
+      MaLop: 'CE118.R11.1',
+      SoTc: 1, // Practice credits
+    });
+    const classOnlyTH = createMockClass({
+      MaMH: 'CE119',
+      MaLop: 'CE119.R11.1',
+      SoTc: 1, // Practice only course
+    });
+
+    // Selecting CE118 (LT + TH) should result in 3 credits, plus CE119 (1 credit) = 4 total
+    expect(calcTongSoTC([classLT, classTH, classOnlyTH])).toBe(4);
+  });
+});

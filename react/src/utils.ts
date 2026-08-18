@@ -10,7 +10,24 @@ export function uniqMaLop(classes: ClassModel[]): ClassModel[] {
 export function calcTongSoTC(classes: ClassModel[]) {
   const { kept } = findOverlapedClasses(classes);
   const unique = uniqMaLop(kept);
-  return unique.reduce((acc, cur) => acc + cur.SoTc, 0);
+  
+  // Group by MaMH and take the MAX of SoTc.
+  // Because LT class has the total credits (e.g. 3) and TH class has practice credits (e.g. 1),
+  // summing them by MaLop will result in double counting (3 + 1 = 4 instead of 3).
+  const creditsByMaMH = new Map<string, number>();
+  unique.forEach((c) => {
+    const currentMax = creditsByMaMH.get(c.MaMH) || 0;
+    if (c.SoTc > currentMax) {
+      creditsByMaMH.set(c.MaMH, c.SoTc);
+    }
+  });
+
+  let total = 0;
+  creditsByMaMH.forEach((soTc) => {
+    total += soTc;
+  });
+
+  return total;
 }
 
 export function getTongSoTcJudgement(tongSoTC: number) {
